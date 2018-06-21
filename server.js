@@ -7,7 +7,7 @@ var cheerio = require("cheerio");
 
 var db = require("./models");
 
-var PORT = process.env.PORT || 3000;
+var PORT = 3000;
 
 var app = express();
 
@@ -23,7 +23,7 @@ app.use(express.static("public"));
 // By default mongoose uses callbacks for async queries, we're setting it to use promises (.then syntax) instead
 // Connect to the Mongo DB
 mongoose.Promise = Promise;
-mongoose.connect(MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/JalopnikScraper");
+mongoose.connect("mongodb://localhost/JalopnikScraper");
 // Routes
 
 app.get("/scrape", function (req, res) {
