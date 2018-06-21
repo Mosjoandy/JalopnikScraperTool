@@ -33,74 +33,72 @@ app.get("/scrape", function (req, res) {
 
         var $ = cheerio.load(response.data);
 
-        $("article h1").each(function (i, element) {
+        $("div.post-wrapper").each(function (i, element) {
 
             var result = {};
 
             // Add the text and href of every link, and save them as properties of the result object
-            result.title = $(this).children("a").text();
-            result.excerpt = $(this).children("a").attr("href");
+            result.title = $(this).children().find("h1").text();
+            result.link = $(this).children().find("a").attr("href");
+            result.excerpt = $(this).children().find("div.excerpt").text();
 
-            //   Create a new Article using the `result` object built from scraping
-            db.Article.create(result)
-                .then(function (dbArticle) {
-                    // View the added result in the console
-                    console.log(dbArticle);
-                })
-                .catch(function (err) {
-                    // If an error occurred, send it to the client
-                    return res.json(err);
+            db.Article.find({ title: result.title })
+                .then(function (poop) {
+                    if (poop.length === 0) {
+                        db.Article.create(result)
+                            .then(function (dbArticle) {
+                                // View the added result in the console
+                                console.log(dbArticle);
+                            })
+                            .catch(function (err) {
+                                // If an error occurred, send it to the client
+                                res.json(err);
+                            });
+                    };
                 });
         });
 
         // If we were able to successfully scrape and save an Article, send a message to the client
         res.send("Scraped some ish");
+
     });
 });
 
 // Route for getting all Articles from the db
 app.get("/articles", function (req, res) {
-  // TODO: Finish the route so it grabs all of the articles
-  db.Article.find({})
-    .then(function (dbArticle) {
-      res.json(dbArticle);
-    })
-    .catch(function (err) {
-      if (err) throw err;
-    });
+    // TODO: Finish the route so it grabs all of the articles
+    db.Article.find({})
+        .then(function (dbArticle) {
+            res.json(dbArticle);
+        })
+        .catch(function (err) {
+            if (err) throw err;
+        });
 });
 
 // Route for grabbing a specific Article by id, populate it with it's note
 app.get("/articles/:id", function (req, res) {
-  // TODO
-  // ====
-  // Finish the route so it finds one article using the req.params.id,
-  // and run the populate method with "note",
-  // then responds with the article with the note included
-  db.Article.findOne({ _id: req.params.id })
-    .populate("note")
-    .then(function (dbArticle) {
-      res.json(dbArticle);
-    })
-    .catch(function (err) {
-      if (err) throw err;
-    });
+
+    db.Article.findOne({ _id: req.params.id })
+        .populate("note")
+        .then(function (dbArticle) {
+            res.json(dbArticle);
+        })
+        .catch(function (err) {
+            if (err) throw err;
+        });
 });
 
 // Route for saving/updating an Article's associated Note
 app.post("/articles/:id", function (req, res) {
-  // TODO
-  // ====
-  // save the new note that gets posted to the Notes collection
-  // then find an article from the req.params.id
-  // and update it's "note" property with the _id of the new note
-  db.Note.create(req.body)
-    .then(function (sheBangs) {
-      db.Article.findOneAndUpdate({ _id: req.params.id }, { note: sheBangs._id }, { new: true })
-        .then(function (article) {
-          res.json(article)
+
+    db.Note.create(req.body)
+        .then(function (sheBangs) {
+            db.Article.findOneAndUpdate({ _id: req.params.id }, { note: sheBangs._id }, { new: true })
+                .then(function (article) {
+                    res.json(article)
+                });
         });
-    });
 });
 
 
